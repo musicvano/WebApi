@@ -4,7 +4,7 @@ namespace WebApi.Services
     {
         public string Image { get; set; } = "rux";
 
-        public string Command { get; set; } = "run /playground/main.rux";
+        public string Command { get; set; } = "run /playground/Main.rux";
 
         public int TimeoutSeconds { get; set; } = 10;
 

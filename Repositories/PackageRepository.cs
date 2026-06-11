@@ -3,21 +3,18 @@ using WebApi.Models;
 
 namespace WebApi.Repositories
 {
-    public class PackageRepository
+    public class PackageRepository(NpgsqlDataSource dataSource)
     {
         private const string Columns = "id, name, description, repository, license, created";
 
-        private readonly NpgsqlDataSource dataSource;
+        private readonly NpgsqlDataSource dataSource = dataSource;
 
-        public PackageRepository(NpgsqlDataSource dataSource)
-        {
-            this.dataSource = dataSource;
-        }
-
-        public async Task<List<Package>> GetAllAsync()
+        public async Task<List<Package>> GetPageAsync(int limit, int offset)
         {
             await using var command = dataSource.CreateCommand(
-                $"SELECT {Columns} FROM packages ORDER BY created DESC");
+                $"SELECT {Columns} FROM packages ORDER BY name LIMIT $1 OFFSET $2");
+            command.Parameters.AddWithValue(limit);
+            command.Parameters.AddWithValue(offset);
             var packages = new List<Package>();
             await using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -25,6 +22,13 @@ namespace WebApi.Repositories
                 packages.Add(ReadPackage(reader));
             }
             return packages;
+        }
+
+        public async Task<int> CountAsync()
+        {
+            await using var command = dataSource.CreateCommand(
+                "SELECT COUNT(*) FROM packages");
+            return Convert.ToInt32(await command.ExecuteScalarAsync());
         }
 
         public async Task<Package?> GetByIdAsync(Guid id)
