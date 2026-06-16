@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Npgsql;
 using WebApi.Repositories;
 using WebApi.Services;
@@ -40,7 +41,16 @@ namespace WebApi
             });
             builder.Services.Configure<PlaygroundOptions>(builder.Configuration.GetSection("Playground"));
             builder.Services.AddSingleton<PlaygroundService>();
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                // The app sits behind a single trusted nginx reverse proxy on localhost.
+                options.KnownIPNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
             var app = builder.Build();
+            app.UseForwardedHeaders();
             app.UseHttpsRedirection();
             app.UseCors();
             app.UseAuthorization();
