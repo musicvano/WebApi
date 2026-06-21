@@ -136,7 +136,7 @@ Each item reports the latest conclusion and completion time per stage:
 
 | Method | Route              | Description                                                                                                                                 |
 | ------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST` | `/webhooks/github` | Receives GitHub `workflow_job` events to update workflow status. Requires a valid `X-Hub-Signature-256` and is not intended for public use. |
+| `POST` | `/webhooks/github` | Receives completed GitHub `workflow_job` events from the `main` branch to update workflow status. Requires a valid `X-Hub-Signature-256` and is not intended for public use. |
 
 ## License
 

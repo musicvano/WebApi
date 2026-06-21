@@ -13,6 +13,9 @@ namespace WebApi.Models
 
     public class WorkflowJob
     {
+        [JsonPropertyName("head_branch")]
+        public string? HeadBranch { get; set; }
+
         [JsonPropertyName("workflow_name")]
         public string? WorkflowName { get; set; }
 

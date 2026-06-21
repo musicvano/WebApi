@@ -14,6 +14,7 @@ namespace WebApi.Controllers
     {
         private const string WorkflowJobEventName = "workflow_job";
         private const string CompletedStatus = "completed";
+        private const string MainBranch = "main";
 
         private readonly WorkflowRepository repository = repository;
         private readonly GitHubWebhookService webhookService = webhookService;
@@ -48,6 +49,7 @@ namespace WebApi.Controllers
             var job = payloadEvent?.WorkflowJob;
             if (job is null
                 || job.Status != CompletedStatus
+                || job.HeadBranch != MainBranch
                 || string.IsNullOrEmpty(job.WorkflowName)
                 || string.IsNullOrEmpty(job.Name))
             {

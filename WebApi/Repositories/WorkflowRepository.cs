@@ -9,8 +9,15 @@ namespace WebApi.Repositories
             "name, build_conclusion, build_completed, test_conclusion, " +
             "test_completed, deploy_conclusion, deploy_completed";
 
-        private static readonly HashSet<string> Jobs =
-            new(StringComparer.OrdinalIgnoreCase) { "build", "test", "deploy" };
+        private static readonly Dictionary<string, string> Jobs =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["build"] = "build",
+                ["test"] = "test",
+                ["deploy"] = "deploy",
+                ["ci / Build"] = "build",
+                ["ci / Test"] = "test"
+            };
 
         private readonly NpgsqlDataSource dataSource = dataSource;
 
@@ -30,11 +37,10 @@ namespace WebApi.Repositories
         public async Task<bool> UpsertJobAsync(
             string workflowName, string job, string? conclusion, DateTime? completed)
         {
-            if (!Jobs.Contains(job))
+            if (!Jobs.TryGetValue(job, out var column))
             {
                 return false;
             }
-            var column = job.ToLowerInvariant();
             var conclusionColumn = $"{column}_conclusion";
             var completedColumn = $"{column}_completed";
             await using var command = dataSource.CreateCommand(
