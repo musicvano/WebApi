@@ -17,30 +17,27 @@ namespace WebApi.Controllers
         private readonly RepositoryService repositoryService = repositoryService;
         private readonly TurnstileService turnstileService = turnstileService;
 
-        private const int DefaultPageSize = 10;
-        private const int MaxPageSize = 50;
-
         [HttpGet]
-        public async Task<ActionResult<PagedResult<Package>>> GetAll(
-            int page = 1, int pageSize = DefaultPageSize)
+        public async Task<ActionResult<List<Package>>> GetAll()
         {
-            page = Math.Max(page, 1);
-            pageSize = Math.Clamp(pageSize, 1, MaxPageSize);
-            var total = await repository.CountAsync();
-            var items = await repository.GetPageAsync(pageSize, (page - 1) * pageSize);
-            return new PagedResult<Package>
-            {
-                Items = items,
-                Total = total,
-                Page = page,
-                PageSize = pageSize
-            };
+            return await repository.GetAllAsync();
         }
 
-        [HttpGet("{id:guid}")]
-        public async Task<ActionResult<Package>> GetById(Guid id)
+        //[HttpGet("{id:guid}")]
+        //public async Task<ActionResult<Package>> GetById(Guid id)
+        //{
+        //    var package = await repository.GetByIdAsync(id);
+        //    if (package is null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    return package;
+        //}
+
+        [HttpGet("{name}")]
+        public async Task<ActionResult<Package>> GetByName(string name)
         {
-            var package = await repository.GetByIdAsync(id);
+            var package = await repository.GetByNameAsync(name);
             if (package is null)
             {
                 return NotFound();
@@ -49,14 +46,12 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Package>> Create(
-            PackageRequest request, CancellationToken cancellationToken)
+        public async Task<ActionResult<Package>> Create(PackageRequest request, CancellationToken cancellationToken)
         {
             if (!await VerifyTurnstileAsync(request.TurnstileToken, cancellationToken))
             {
                 return BadRequest("Human verification failed. Refresh the page and try again.");
             }
-
             PackageMetadata metadata;
             try
             {
@@ -75,7 +70,6 @@ namespace WebApi.Controllers
             {
                 return BadRequest("GitHub request timed out. Try again later.");
             }
-
             var package = new Package
             {
                 Id = Guid.CreateVersion7(),
@@ -93,18 +87,16 @@ namespace WebApi.Controllers
             {
                 return Conflict("A package with the same name or repository already exists.");
             }
-            return CreatedAtAction(nameof(GetById), new { id = package.Id }, package);
+            return CreatedAtAction(nameof(GetByName), new { name = package.Name }, package);
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(
-            Guid id, PackageRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update(Guid id, PackageRequest request, CancellationToken cancellationToken)
         {
             if (!await VerifyTurnstileAsync(request.TurnstileToken, cancellationToken))
             {
                 return BadRequest("Human verification failed. Refresh the page and try again.");
             }
-
             PackageMetadata metadata;
             try
             {
@@ -123,7 +115,6 @@ namespace WebApi.Controllers
             {
                 return BadRequest("GitHub request timed out. Try again later.");
             }
-
             var package = new Package
             {
                 Id = id,
@@ -141,7 +132,6 @@ namespace WebApi.Controllers
             {
                 return Conflict("A package with the same name or repository already exists.");
             }
-
             if (!updated)
             {
                 return NotFound();
@@ -149,8 +139,7 @@ namespace WebApi.Controllers
             return NoContent();
         }
 
-        private async Task<bool> VerifyTurnstileAsync(
-            string token, CancellationToken cancellationToken)
+        private async Task<bool> VerifyTurnstileAsync(string token, CancellationToken cancellationToken)
         {
             try
             {
@@ -169,14 +158,14 @@ namespace WebApi.Controllers
             }
         }
 
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            if (!await repository.DeleteAsync(id))
-            {
-                return NotFound();
-            }
-            return NoContent();
-        }
+        //[HttpDelete("{id:guid}")]
+        //public async Task<IActionResult> Delete(Guid id)
+        //{
+        //    if (!await repository.DeleteAsync(id))
+        //    {
+        //        return NotFound();
+        //    }
+        //    return NoContent();
+        //}
     }
 }

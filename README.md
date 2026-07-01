@@ -21,17 +21,14 @@ All requests and responses use JSON. Timestamps are UTC (ISO 8601).
 The package registry. Packages are sourced from public GitHub repositories;
 their metadata (name, description, license) is read from the repository.
 
-| Method   | Route                                       | Description                                                                                  |
-| -------- | ------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `GET`    | `/packages?page={page}&pageSize={pageSize}` | List packages, newest first. `page` defaults to `1`, `pageSize` defaults to `10` (max `50`). |
-| `GET`    | `/packages/{id}`                            | Get a single package by its GUID.                                                            |
-| `POST`   | `/packages`                                 | Register a new package from a GitHub repository.                                             |
-| `PUT`    | `/packages/{id}`                            | Refresh an existing package from its repository.                                             |
-| `DELETE` | `/packages/{id}`                            | Remove a package.                                                                            |
+| Method | Route              | Description                                     |
+| ------ | ------------------ | ----------------------------------------------- |
+| `GET`  | `/packages`        | List all packages, ordered by name              |
+| `GET`  | `/packages/{name}` | Get a single package by its name                |
+| `POST` | `/packages`        | Register a new package from a GitHub repository |
+| `PUT`  | `/packages/{id}`   | Refresh an existing package from its repository |
 
-`POST` and `PUT` require human verification via a
-[Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/) token
-and take the following body:
+`POST` and `PUT` require human verification via a [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/) token and take the following body:
 
 ```json
 {
@@ -53,24 +50,13 @@ A package is returned as:
 }
 ```
 
-List responses are paged:
-
-```json
-{
-  "items": [
-    /* Package[] */
-  ],
-  "total": 42,
-  "page": 1,
-  "pageSize": 10
-}
-```
+`GET /packages` returns a JSON array of packages.
 
 ### Playground
 
-| Method | Route             | Description                                          |
-| ------ | ----------------- | ---------------------------------------------------- |
-| `POST` | `/playground/run` | Compile and run a Rux snippet, returning its output. |
+| Method | Route             | Description                                         |
+| ------ | ----------------- | --------------------------------------------------- |
+| `POST` | `/playground/run` | Compile and run a Rux snippet, returning its output |
 
 Request body (`code` is limited to 4096 characters):
 
@@ -94,9 +80,9 @@ Response:
 
 ### Workflows
 
-| Method | Route        | Description                                                    |
-| ------ | ------------ | -------------------------------------------------------------- |
-| `GET`  | `/workflows` | CI/CD status (build, test, deploy) for each compiler workflow. |
+| Method | Route        | Description                                                   |
+| ------ | ------------ | ------------------------------------------------------------- |
+| `GET`  | `/workflows` | CI/CD status (build, test, deploy) for each compiler workflow |
 
 Each item reports the latest conclusion and completion time per stage:
 
@@ -116,9 +102,9 @@ Each item reports the latest conclusion and completion time per stage:
 
 ### Status
 
-| Method | Route     | Description                                                                                             |
-| ------ | --------- | ------------------------------------------------------------------------------------------------------- |
-| `GET`  | `/status` | Service health, version, uptime and database connectivity. Returns `200` when healthy, `503` otherwise. |
+| Method | Route     | Description                                                                                            |
+| ------ | --------- | ------------------------------------------------------------------------------------------------------ |
+| `GET`  | `/status` | Service health, version, uptime and database connectivity. Returns `200` when healthy, `503` otherwise |
 
 ```json
 {
@@ -134,9 +120,9 @@ Each item reports the latest conclusion and completion time per stage:
 
 ### Webhooks
 
-| Method | Route              | Description                                                                                                                                 |
-| ------ | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST` | `/webhooks/github` | Receives completed GitHub `workflow_job` events from the `main` branch to update workflow status. Requires a valid `X-Hub-Signature-256` and is not intended for public use. |
+| Method | Route              | Description                                                                                                                                                                 |
+| ------ | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST` | `/webhooks/github` | Receives completed GitHub `workflow_job` events from the `main` branch to update workflow status. Requires a valid `X-Hub-Signature-256` and is not intended for public use |
 
 ## License
 

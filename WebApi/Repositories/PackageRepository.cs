@@ -9,12 +9,10 @@ namespace WebApi.Repositories
 
         private readonly NpgsqlDataSource dataSource = dataSource;
 
-        public async Task<List<Package>> GetPageAsync(int limit, int offset)
+        public async Task<List<Package>> GetAllAsync()
         {
             await using var command = dataSource.CreateCommand(
-                $"SELECT {Columns} FROM packages ORDER BY name LIMIT $1 OFFSET $2");
-            command.Parameters.AddWithValue(limit);
-            command.Parameters.AddWithValue(offset);
+                $"SELECT {Columns} FROM packages ORDER BY name");
             var packages = new List<Package>();
             await using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
@@ -24,18 +22,24 @@ namespace WebApi.Repositories
             return packages;
         }
 
-        public async Task<int> CountAsync()
-        {
-            await using var command = dataSource.CreateCommand(
-                "SELECT COUNT(*) FROM packages");
-            return Convert.ToInt32(await command.ExecuteScalarAsync());
-        }
-
         public async Task<Package?> GetByIdAsync(Guid id)
         {
             await using var command = dataSource.CreateCommand(
                 $"SELECT {Columns} FROM packages WHERE id = $1");
             command.Parameters.AddWithValue(id);
+            await using var reader = await command.ExecuteReaderAsync();
+            if (!await reader.ReadAsync())
+            {
+                return null;
+            }
+            return ReadPackage(reader);
+        }
+
+        public async Task<Package?> GetByNameAsync(string name)
+        {
+            await using var command = dataSource.CreateCommand(
+                $"SELECT {Columns} FROM packages WHERE name = $1");
+            command.Parameters.AddWithValue(name);
             await using var reader = await command.ExecuteReaderAsync();
             if (!await reader.ReadAsync())
             {
